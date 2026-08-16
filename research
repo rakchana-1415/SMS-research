@@ -1,142 +1,1451 @@
-Research Report: WhatsApp API Options & Limits
+HITS Attendance Alert System
+
+Research & Technical Specification
+
+«Project: Automated Attendance Monitoring & Alert System
+Institution: Hindustan Institute of Technology and Science (HITS)
+Research Branch: "Research"
+Current Notification Channel: SMS
+System Threshold: Attendance < 75%»
+
+---
 
 1. Executive Summary
 
-This report provides an in-depth comparison of three key options for integrating WhatsApp messaging into applications: Twilio WhatsApp API, Meta WhatsApp Business API, and alternative solutions like MessageBird. Key areas of focus include features, pricing, message template requirements, and the approval process for automated messages. The findings indicate that while both Twilio and Meta APIs offer robust capabilities, Twilio excels in ease of use and documentation support, while Meta provides direct access to WhatsApp’s core functionalities, making it suitable for larger enterprises.
+The HITS Attendance Alert System is an automated attendance monitoring platform designed to identify students whose subject-wise attendance falls below the required 75% threshold and automatically notify them through SMS.
 
-2. Problem Statement
+The system is designed using a modular architecture so that attendance calculation, database management, scheduling, notification delivery, and frontend functionality remain loosely coupled.
 
-Businesses face challenges in efficiently managing customer communications at scale. WhatsApp is a widely-used platform for customer engagement, but implementing automated messaging requires adherence to specific API guidelines and message template approvals. Understanding the various API options is crucial for optimizing communication strategies.
+The initial prototype will use a simulated ERP dataset rather than directly connecting to the HITS ERP. This allows the development team to validate the complete workflow before implementing institutional ERP integration.
 
-3. Background
+Current Technology Stack
 
-WhatsApp APIs facilitate direct messaging between businesses and customers. The Meta WhatsApp Business API is tailored for medium to large enterprises, allowing for high-volume messaging. Twilio acts as a third-party integrator, simplifying the process for developers. Both platforms require pre-approved message templates to ensure compliance with WhatsApp’s quality standards.
+Layer| Technology
+Backend| FastAPI
+Database| MongoDB Atlas
+Database Driver| Motor
+Scheduler| APScheduler
+Frontend| React 19 + TypeScript + Vite 6
+Authentication| bcrypt
+Notification| SMS Gateway
+Initial Data Source| Simulated ERP Dataset
+API Testing| Postman
+Version Control| Git + GitHub
 
-4. Feature Comparison
+---
 
-| Feature                     | Twilio WhatsApp API            | Meta WhatsApp Business API      | Alternatives (e.g., MessageBird) |
-|-----------------------------|--------------------------------|----------------------------------|----------------------------------|
-| Pricing                     | Pay-as-you-go; approx. $0.005 per message | Pay-as-you-go; varies by country | Generally similar to Twilio      |
-| Free Tier                   | None                           | $0 for first 1,000 messages/month | Varied; typically limited        |
-| Message Templates           | Required pre-approval          | Required pre-approval            | Similar requirements             |
-| SDK Availability            | Yes (multiple languages)       | Yes (multiple languages)         | Yes (multiple languages)         |
-| Ease of Setup               | Moderate                       | Moderate to complex              | Moderate                         |
-| Authentication              | API key, OAuth                 | API key, OAuth                   | Varies                           |
-| Security                    | HTTPS, encryption              | HTTPS, encryption                 | Varies                           |
-| Scalability                 | High                           | High                             | High                             |
-| Platform Support            | Multiple platforms              | Multiple platforms               | Multiple platforms               |
-| API Limits                  | 1,000 messages/day for free    | Varies by account type           | Varies                           |
-| Documentation Quality       | High                           | High                             | Moderate to high                |
-| Support Availability        | 24/7 support                   | Limited business hours           | Varies                           |
+2. 🔴 Major Project Decision: WhatsApp → SMS
 
-5. Technical Architecture
+Why was WhatsApp replaced with SMS?
 
-Both APIs utilize cloud-based architectures. The Twilio API acts as an intermediary, handling various messaging protocols and offering advanced features like message analytics. The Meta API provides a direct connection to WhatsApp's infrastructure, allowing businesses to manage customer interactions without intermediaries.
+The original project plan considered using WhatsApp automated notifications. During technical and cost feasibility analysis, the team decided to move to SMS.
 
-6. Setup Process
+This is an important architectural decision and should be considered when developing the notification module.
 
-Twilio WhatsApp API:
-1. Sign up for a Twilio account.
-2. Get a Twilio phone number enabled for WhatsApp.
-3. Create a messaging service in the Twilio console and configure it.
-4. Set up webhook URLs for handling incoming messages.
-5. Create message templates for approval and submit them.
+Reasons for selecting SMS
 
-Meta WhatsApp Business API:
-1. Apply for a WhatsApp Business API account through the Meta Business Manager.
-2. Obtain a WhatsApp Business Account (WABA).
-3. Set up a server for hosting the API client; Docker is commonly used.
-4. Configure webhook URLs for inbound messaging.
-5. Submit message templates for approval via the Business Manager.
+1. Cost efficiency
 
-7. Approval Process
+WhatsApp Business messaging can involve additional platform/provider costs, message-category considerations, and business messaging requirements.
 
-Twilio:
-- Steps:
-- Create message templates in the Twilio console.
-- Submit templates for approval, ensuring compliance with WhatsApp’s guidelines.
-- Time Required: Typically 1-3 business days.
-- Common Rejection Reasons: Non-compliance with WhatsApp’s content policies (e.g., promotional content).
-- Best Practices: Keep templates concise, relevant, and customer-centric.
+For a college project with no dedicated implementation budget, recurring messaging costs are an important constraint.
 
-Meta:
-- Steps:
-- Create and submit message templates through the WhatsApp Business Manager.
-- Provide clear context and usage scenarios for templates.
-- Time Required: Typically 1-3 business days.
-- Common Rejection Reasons: Violation of WhatsApp’s policies, lack of user consent.
-- Best Practices: Use templates that focus on providing value to the customer and comply with WhatsApp’s content guidelines.
+SMS gateways provide relatively straightforward pay-per-message pricing, allowing the project to control expenditure based on actual usage.
 
-8. Developer Experience
+2. Universal reach
 
-- SDKs: Both APIs provide comprehensive SDKs for various programming languages, allowing for seamless integration.
-- Code Examples: Extensive documentation and sample code are available for both options, making it easier for developers to get started.
-- APIs: Both APIs follow RESTful principles, making them easy to understand for developers familiar with web services.
-- Debugging Tools: Twilio offers a robust debugging console, while Meta provides logging tools for monitoring interactions.
-- Local Testing Options: Twilio supports sandbox environments for testing; Meta typically requires a production-like setup.
+SMS does not require:
 
-9. Pricing Analysis
+- WhatsApp installation
+- Internet connectivity
+- A WhatsApp account
+- Smartphone-only access
 
-Twilio:
-- Initial Cost: Free to create an account.
-- Monthly Cost: Based on usage; approximately $0.005 per message sent.
-- Hidden Costs: Charges for phone numbers and additional features (e.g., analytics).
-- Scaling Costs: Costs scale linearly with message volume.
+The notification can reach a student's registered mobile number through the cellular network.
 
-Meta:
-- Initial Cost: Free to set up.
-- Monthly Cost: Varies based on usage; generally competitive.
-- Hidden Costs: May incur hosting costs if self-hosted.
-- Scaling Costs: Similar to Twilio, with costs scaling with message volume.
+3. Simpler integration
 
-10. Advantages
+The required functionality is simple:
 
-Twilio:
-- User-friendly interface and extensive documentation make it easy for developers to integrate.
-- Offers features like message analytics and a robust support system.
+Attendance < 75%
+        ↓
+Generate Alert
+        ↓
+Call SMS REST API
+        ↓
+Send SMS
 
-Meta:
-- Direct access to WhatsApp’s core functionalities provides high performance and reliability.
-- Offers advanced features like message templates and interactive buttons.
+The system does not require a complete conversational messaging platform.
 
-11. Disadvantages
+4. Reduced project complexity
 
-Twilio:
-- Costs can accumulate rapidly with high message volumes.
-- Slightly more complex due to the intermediary layer, requiring additional configuration.
+WhatsApp Business integrations can involve:
 
-Meta:
-- Requires more technical expertise to set up and maintain.
-- The approval process for message templates can be time-consuming.
+- Business accounts
+- Message templates
+- Template approval
+- Provider-specific configuration
+- Business messaging policies
+- Conversation/message categories
 
-12. Risks
+For this project, those additional components are unnecessary for the basic requirement of sending attendance warnings.
 
-- Technical Risks: Potential downtime during updates or changes to API functionality.
-- Security Risks: Must ensure secure handling of customer data and compliance with regulations.
-- Compliance Risks: Strict adherence to WhatsApp’s content policies is necessary to avoid penalties.
-- Operational Risks: Delays in template approval can hinder communication plans.
+5. Suitable for the project's actual requirement
 
-13. Best Practices
+The system only needs to send a notification such as:
 
-- Regularly review and update message templates to keep them relevant and compliant.
-- Monitor messaging performance to optimize strategies based on customer responses.
-- Maintain clear communication with WhatsApp’s guidelines to avoid rejections.
+HITS Attendance Alert:
+Your attendance in Data Structures is 72%.
+Minimum required: 75%.
+Please attend upcoming classes regularly.
 
-14. Real-World Use Cases
+SMS is sufficient for this use case.
 
-- Twilio: Used by companies like Uber for sending ride updates and customer notifications.
-- Meta: Utilized by Booking.com for sending booking confirmations and customer support messages.
+---
 
-15. Final Recommendation
+Security clarification
 
-- Students: Twilio for its ease of use and comprehensive documentation.
-- Personal Projects: Meta for cost-effectiveness and scalability if self-hosted.
-- Startups: Twilio for quick integration and flexibility, especially when scaling.
-- Small Businesses: Meta for higher scalability at lower costs, suitable for growing customer interactions.
-- Enterprises: Choose based on specific needs; Meta for direct integration or Twilio for additional features and support.
+The project should not claim that SMS is inherently more secure than WhatsApp.
 
-16. References
+The technically correct justification is:
 
-- [Twilio WhatsApp API Documentation](https://www.twilio.com/docs/whatsapp)
-- [Meta WhatsApp Business API Documentation](https://developers.facebook.com/docs/whatsapp)
-- [WhatsApp Message Template Guidelines](https://developers.facebook.com/docs/whatsapp/api/messages/#message-templates)
+«SMS was selected primarily because of lower implementation complexity, cost control, universal mobile reach, and suitability for one-way attendance notifications. Security will be implemented independently through API authentication, HTTPS, environment-based secrets, access control, data minimization, and secure logging.»
+
+---
+
+3. System Architecture
+
+                    HITS ERP / Fake Dataset
+                            |
+                            v
+                     MongoDB Atlas
+                            |
+                            v
+                     FastAPI Backend
+                            |
+                            v
+                       APScheduler
+                         5:00 PM
+                            |
+                            v
+                  Attendance Calculation
+                            |
+                            v
+                     Risk Detection
+                            |
+                  Attendance < 75%?
+                       /          \
+                     NO            YES
+                     |              |
+                     v              v
+                No Alert      Notification Service
+                                      |
+                                      v
+                                SMS Provider
+                                      |
+                                      v
+                               Student Mobile
+                                      |
+                                      v
+                              Alert History
+
+---
+
+4. Existing Repository Structure
+
+HITS-Attendance-Alert-System/
+│
+├── Backend/
+│   └── FastAPI REST API
+│
+├── Frontend/
+│   └── React + TypeScript UI
+│
+├── Database/
+│   └── Datasets and seed data
+│
+└── Research/
+    └── Technical research and specifications
+
+---
+
+5. Team Responsibilities
+
+Branch| Responsibility
+"Backend"| REST API, attendance calculation, database interaction
+"Frontend"| React UI, dashboard, charts and UX
+"Database"| MongoDB schema, datasets and seed data
+"Research"| Technical research, feasibility and provider evaluation
+"Automation-Logic"| Scheduler, SMS pipeline and notification automation
+
+---
+
+6. Core System Workflow
+
+Phase 1 — Data Acquisition
+
+Initially:
+
+Fake ERP Dataset
+       ↓
+MongoDB Atlas
+
+Future:
+
+HITS ERP
+       ↓
+ERP Integration Layer
+       ↓
+Data Normalization
+       ↓
+MongoDB
+
+Phase 2 — Attendance Processing
+
+Student Records
+      +
+Attendance Records
+      ↓
+Attendance Calculation
+
+Phase 3 — Risk Detection
+
+Attendance < 75%
+        ↓
+Student flagged
+
+Phase 4 — Notification
+
+Risk Flag
+    ↓
+Notification Service
+    ↓
+SMS Provider
+    ↓
+Student Mobile
+
+Phase 5 — Audit
+
+SMS Request
+     ↓
+Provider Response
+     ↓
+Alert History
+
+---
+
+7. Research Topic 1 — HITS ERP Attendance Data Structure
+
+The project requires attendance information at the student and subject level.
+
+The prototype should not depend on the internal database structure of the HITS ERP unless official API/database access is provided by the institution.
+
+Therefore, the project should define a canonical attendance model.
+
+Required Data
+
+Student
+├── Student ID
+├── Student Name
+├── Register Number
+├── Phone Number
+├── Section
+├── Semester
+└── Academic Year
+
+Subject
+├── Subject ID
+├── Subject Code
+├── Subject Name
+├── Credits
+└── Weekly Frequency
+
+Attendance
+├── Student ID
+├── Subject ID
+├── Class Date
+├── Slot
+└── Attendance Status
+
+---
+
+8. Attendance Data Dictionary
+
+Field| Type| Description
+"student_id"| String| Unique student identifier
+"student_name"| String| Student name
+"register_number"| String| Academic register number
+"phone_number"| String| SMS destination number
+"section"| String| Student section
+"semester"| Integer| Current semester
+"academic_year"| String| Academic year
+"subject_id"| String| Unique subject identifier
+"subject_code"| String| Subject code
+"subject_name"| String| Subject name
+"credits"| Number| Subject credit value
+"weekly_frequency"| Integer| Expected classes per week
+"class_date"| Date| Date of class
+"slot"| String| Timetable slot
+"attendance_status"| Enum| "PRESENT" / "ABSENT"
+"classes_conducted"| Integer| Total classes conducted
+"classes_attended"| Integer| Total classes attended
+"attendance_percentage"| Decimal| Calculated attendance
+
+---
+
+9. ERP Integration Strategy
+
+The prototype should use:
+
+FakeAttendanceProvider
+
+The future production system can use:
+
+HitsErpAttendanceProvider
+
+Both should produce the same canonical data structure.
+
+Recommended architecture
+
+              Attendance Provider
+                     |
+             +-------+-------+
+             |               |
+             v               v
+       Fake ERP Adapter   HITS ERP Adapter
+             |               |
+             +-------+-------+
+                     |
+                     v
+             Canonical Model
+                     |
+                     v
+                 MongoDB
+
+This follows an Adapter Pattern and prevents ERP-specific implementation from affecting the rest of the system.
+
+---
+
+10. Recommended MongoDB Collections
+
+students
+subjects
+attendance_records
+alerts
+
+Optional:
+
+sections
+class_sessions
+notification_logs
+
+Example attendance record
+
+{
+  "student_id": "STU001",
+  "subject_id": "CS201",
+  "class_date": "2026-08-10",
+  "slot": "S03",
+  "attendance_status": "PRESENT"
+}
+
+---
+
+11. Research Topic 2 — SMS API Evaluation
+
+The notification system requires an SMS gateway with:
+
+- REST API support
+- Indian mobile-number support
+- Reasonable cost
+- Developer-friendly documentation
+- Delivery status support
+- DLT compliance support
+- Secure API authentication
+
+Provider Shortlist
+
+Provider| India Focus| API| Cost Level| Suitability
+MSG91| Strong| REST| Low| ⭐⭐⭐⭐⭐
+Fast2SMS| Strong| REST| Low| ⭐⭐⭐⭐⭐
+Textlocal| Strong| REST| Low/Medium| ⭐⭐⭐⭐
+Twilio SMS| Global| REST| Higher for this use case| ⭐⭐⭐
+
+---
+
+12. MSG91
+
+MSG91 provides an SMS API and supports programmatic SMS delivery.
+
+Its published India pricing currently starts around:
+
+- ₹0.25/SMS at lower volume
+- Lower per-SMS rates at higher volumes
+
+Actual pricing should be rechecked before deployment because provider pricing can change.
+
+Advantages
+
+- India-focused
+- REST API
+- Python-compatible
+- Competitive pricing
+- Sender ID support
+- Suitable for automated notifications
+
+Limitations
+
+- Account setup required
+- DLT requirements apply
+- Production usage is paid
+
+Recommendation
+
+Primary provider candidate.
+
+---
+
+13. Fast2SMS
+
+Fast2SMS is an India-focused SMS provider offering API-based SMS delivery.
+
+Its published pricing starts around ₹0.25/SMS at lower wallet tiers, with lower rates at higher volumes. GST and current pricing conditions should be verified before purchasing.
+
+Advantages
+
+- Low entry cost
+- India-focused
+- REST API
+- Simple integration
+- Suitable for prototypes
+
+Limitations
+
+- Paid credits required for real SMS
+- DLT requirements apply
+- Production usage is not free
+
+Recommendation
+
+Primary alternative to MSG91.
+
+---
+
+14. Textlocal
+
+Textlocal provides SMS APIs and offers initial testing credits for new accounts according to its documentation.
+
+Advantages
+
+- API support
+- Initial testing facility
+- India-focused
+- Developer-friendly
+
+Limitations
+
+- Production usage becomes paid
+- DLT requirements apply
+- Current pricing should be verified before final selection
+
+Recommendation
+
+Secondary evaluation option.
+
+---
+
+15. Twilio SMS
+
+Twilio is a mature programmable communication platform with SMS API support.
+
+However, for this particular project it should not automatically be selected simply because it is widely known.
+
+The project is:
+
+- India-focused
+- Budget constrained
+- Sending simple one-way notifications
+- Not requiring a complex global messaging platform
+
+Therefore, India-focused SMS providers should be evaluated first.
+
+---
+
+16. Provider Selection Criteria
+
+The final provider should be selected using:
+
+Provider Score =
+Cost
++
+API Reliability
++
+Documentation
++
+DLT Support
++
+Delivery Reports
++
+Developer Experience
++
+Indian Number Support
+
+Recommended evaluation order
+
+1. MSG91
+2. Fast2SMS
+3. Textlocal
+4. Twilio
+
+The final selection should only be made after a successful end-to-end API test.
+
+---
+
+17. India DLT Compliance
+
+A critical consideration for real SMS deployment in India is TRAI's Distributed Ledger Technology (DLT) framework.
+
+Depending on the nature of the messages and deployment, requirements can include:
+
+- Principal Entity registration
+- Sender/Header registration
+- Content Template registration
+- Consent-related registration where applicable
+- Appropriate template/header identifiers
+
+Therefore:
+
+«The prototype should not assume that an ordinary personal mobile number and API key can be used for unrestricted production SMS delivery.»
+
+The selected SMS provider must be checked for its current DLT onboarding and compliance process.
+
+---
+
+18. SMS Template
+
+Recommended template:
+
+HITS Attendance Alert:
+Your attendance in {{SUBJECT}} is {{PERCENTAGE}}%.
+Minimum required: {{THRESHOLD}}%.
+Please attend upcoming classes regularly.
+
+Example:
+
+HITS Attendance Alert:
+Your attendance in Data Structures is 72%.
+Minimum required: 75%.
+Please attend upcoming classes regularly.
+
+Design principles
+
+- Keep the message short.
+- Avoid unnecessary personal information.
+- Use approved template variables.
+- Avoid sensitive academic details.
+- Keep the message within efficient SMS length where possible.
+
+---
+
+19. Research Topic 3 — Attendance Calculation
+
+The fundamental formula is:
+
+Attendance % =
+(Classes Attended / Classes Conducted) × 100
+
+Example:
+
+Attended = 18
+Conducted = 20
+
+Attendance = (18 / 20) × 100
+           = 90%
+
+---
+
+20. Attendance Risk Rule
+
+if attendance_percentage < 75:
+    alert_required = True
+else:
+    alert_required = False
+
+Attendance| Status
+60%| 🔴 Alert
+70%| 🔴 Alert
+74.99%| 🔴 Alert
+75%| 🟢 No alert
+76%| 🟢 No alert
+90%| 🟢 No alert
+
+Important: The requirement is below 75%, not "75% or below".
+
+---
+
+21. Classes Required to Reach 75%
+
+Let:
+
+A = Classes Attended
+C = Classes Conducted
+X = Future Classes Attended
+
+Required condition:
+
+(A + X) / (C + X) >= 0.75
+
+Therefore:
+
+X >= (0.75C - A) / 0.25
+
+Implementation:
+
+import math
+
+required = math.ceil(
+    (0.75 * conducted - attended) / 0.25
+)
+
+required = max(required, 0)
+
+---
+
+22. Worked Example — 70%
+
+Attended = 14
+Conducted = 20
+
+Attendance = 70%
+
+Required:
+
+X >= (0.75 × 20 - 14) / 0.25
+X >= 4
+
+Verification:
+
+18 / 24 × 100 = 75%
+
+Result
+
+4 consecutive attended classes are required.
+
+---
+
+23. Worked Example — 72%
+
+Attended = 18
+Conducted = 25
+
+Attendance = 72%
+
+X >= (0.75 × 25 - 18) / 0.25
+X >= 3
+
+Verification:
+
+21 / 28 × 100 = 75%
+
+Result
+
+3 consecutive attended classes are required.
+
+---
+
+24. Worked Example — 74%
+
+Attended = 37
+Conducted = 50
+
+X >= (0.75 × 50 - 37) / 0.25
+X >= 2
+
+Verification:
+
+39 / 52 × 100 = 75%
+
+Result
+
+2 consecutive attended classes are required.
+
+---
+
+25. Subject-Wise Attendance
+
+Attendance must be calculated independently for each subject.
+
+Example:
+
+Subject| Attendance| Alert
+DBMS| 88%| No
+OOP| 72%| Yes
+Mathematics| 91%| No
+Networks| 68%| Yes
+
+The system should not calculate a simple average of subject percentages.
+
+Attendance should be calculated from the actual class records for each subject.
+
+---
+
+26. Different Weekly Frequencies
+
+Subjects can have different weekly frequencies.
+
+Example:
+
+Subject| Classes / Week
+Mathematics| 5
+DBMS| 4
+OOP| 4
+Networks| 3
+Communication| 2
+Laboratory| 2
+
+The calculation must be based on:
+
+Actual classes conducted
++
+Actual classes attended
+
+rather than assuming a fixed weekly frequency.
+
+---
+
+27. Research Topic 4 — Fake Dataset Design
+
+The prototype should contain 50 students.
+
+Attendance Distribution
+
+Attendance Range| Students| Purpose
+90–100%| 10| Safe cases
+80–89%| 10| Normal cases
+76–79%| 8| Near threshold
+74–75%| 8| Boundary testing
+65–73%| 8| Warning cases
+<65%| 6| High-risk cases
+Total| 50| 
+
+This distribution provides enough variation to test both normal and edge cases.
+
+---
+
+28. Recommended Subjects
+
+Subject| Code| Credits
+Data Structures| CS201| 4
+DBMS| CS202| 4
+Object Oriented Programming| CS203| 4
+Mathematics| MA201| 4
+Computer Networks| CS204| 3
+Operating Systems| CS205| 3
+Technical Communication| HS201| 2
+Laboratory| CS206L| 2
+
+«Replace these with the actual current HITS subjects when the official academic structure is available.»
+
+---
+
+29. Required Dataset Test Cases
+
+The fake dataset must deliberately include edge cases.
+
+Case 1 — Safe
+
+40 conducted
+37 attended
+92.5%
+
+Expected:
+
+alert_required = false
+
+Case 2 — Below threshold
+
+50 conducted
+37 attended
+74%
+
+Expected:
+
+alert_required = true
+
+Case 3 — Exactly 75%
+
+40 conducted
+30 attended
+75%
+
+Expected:
+
+alert_required = false
+
+Case 4 — High risk
+
+40 conducted
+24 attended
+60%
+
+Expected:
+
+alert_required = true
+
+Case 5 — Multiple risk subjects
+
+DBMS        → 88%
+OOP         → 72%
+Mathematics → 91%
+Networks    → 68%
+
+Expected alerts:
+
+OOP
+Networks
+
+---
+
+30. Database Validation Rules
+
+The backend should enforce:
+
+classes_attended >= 0
+classes_conducted >= 0
+classes_attended <= classes_conducted
+
+The system should not blindly trust a stored percentage.
+
+Instead:
+
+attendance_percentage =
+(classes_attended / classes_conducted) × 100
+
+Handle:
+
+classes_conducted = 0
+
+to avoid division-by-zero errors.
+
+---
+
+31. SMS Automation Architecture
+
+The SMS service should be provider-independent.
+
+Recommended abstraction
+
+NotificationService
+        |
+        v
+    SMSProvider
+        |
+    +---+---+
+    |       |
+    v       v
+  MSG91   Fast2SMS
+
+During development:
+
+NotificationService
+        |
+        v
+MockSMSProvider
+
+This avoids spending money during every development test.
+
+---
+
+32. SMS Provider Interface
+
+Recommended interface:
+
+class SMSProvider:
+
+    async def send_sms(
+        self,
+        recipient: str,
+        message: str
+    ):
+        raise NotImplementedError
+
+Possible implementations:
+
+SMSProvider
+├── MockSMSProvider
+├── MSG91Provider
+├── Fast2SMSProvider
+└── TextlocalProvider
+
+This follows a Strategy/Provider Abstraction Pattern.
+
+---
+
+33. First Automation Test
+
+Before connecting attendance data, the Automation team should prove the SMS mechanism independently.
+
+Test flow
+
+Python Script
+      |
+      v
+SMS REST API
+      |
+      v
+SMS Gateway
+      |
+      v
+Own Test Number
+
+Test message
+
+Hello from HITS Attendance System
+
+Success Criteria
+
+- [ ] API authentication succeeds.
+- [ ] Python sends the request automatically.
+- [ ] SMS provider accepts the request.
+- [ ] SMS reaches the test phone.
+- [ ] Provider returns a request/message ID.
+- [ ] API errors are captured.
+- [ ] Delivery status can be recorded.
+
+No attendance calculation is required for this test.
+
+---
+
+34. Scheduler Workflow
+
+The existing APScheduler configuration runs the attendance scan at 5:00 PM.
+
+Recommended pipeline:
+
+5:00 PM
+   ↓
+Fetch active students
+   ↓
+Fetch attendance records
+   ↓
+Calculate subject-wise attendance
+   ↓
+Identify attendance < 75%
+   ↓
+Check duplicate alert
+   ↓
+Generate SMS
+   ↓
+Send SMS
+   ↓
+Store provider response
+   ↓
+Update alert history
+
+---
+
+35. Alert Deduplication
+
+Automated schedulers can accidentally send duplicate notifications.
+
+The system should therefore maintain alert history.
+
+Recommended fields:
+
+alert_id
+student_id
+subject_id
+attendance_percentage
+threshold
+message
+provider
+provider_message_id
+status
+created_at
+sent_at
+
+Possible status values:
+
+PENDING
+SENT
+DELIVERED
+FAILED
+
+Before sending:
+
+Check whether an equivalent alert
+has already been sent.
+
+---
+
+36. Security Requirements
+
+Never commit credentials
+
+Do not commit:
+
+SMS_API_KEY
+SMS_AUTH_TOKEN
+SMS_SENDER_ID
+MONGODB_URI
+JWT_SECRET
+
+Use:
+
+.env
+
+Example:
+
+MONGODB_URI=
+JWT_SECRET=
+SMS_API_KEY=
+SMS_SENDER_ID=
+SMS_TEMPLATE_ID=
+
+Add ".env" to ".gitignore".
+
+Additional security controls
+
+- HTTPS for external API communication
+- Secure API authentication
+- Password hashing
+- Input validation
+- Phone-number validation
+- Least-privilege database access
+- No sensitive data in SMS
+- Safe error logging
+- Credential rotation when required
+
+---
+
+37. Data Privacy
+
+SMS messages should follow the principle of data minimization.
+
+Recommended
+
+Subject
+Attendance percentage
+Required threshold
+
+Avoid
+
+- Passwords
+- Complete attendance history
+- Internal database IDs
+- Unnecessary student information
+- Sensitive academic information
+
+Example:
+
+HITS Attendance Alert:
+Your attendance in DBMS is 72%.
+Minimum required: 75%.
+
+is preferable to sending the student's complete academic record.
+
+---
+
+38. Development Cost Optimization
+
+The project does not have dedicated funding from the college.
+
+Therefore, the architecture should follow a free-first development strategy.
+
+Component| Recommended Cost
+Git| ₹0
+GitHub| ₹0 initially
+FastAPI| ₹0
+React| ₹0
+TypeScript| ₹0
+Vite| ₹0
+MongoDB Atlas| ₹0 initially
+APScheduler| ₹0
+Motor| ₹0
+Postman| ₹0 initially
+Mock SMS| ₹0
+Real SMS| Minimum required credits
+Cloud deployment| Avoid initially
+Premium monitoring| Avoid
+Premium database| Avoid
+
+Key strategy
+
+Use:
+
+Mock SMS Provider
+
+for normal development.
+
+Use the real SMS provider only for:
+
+End-to-End Testing
+
+---
+
+39. Recommended Free Development Tools
+
+GitHub
+
+Use for:
+
+- Source control
+- Collaboration
+- Branch management
+- Pull requests
+- Issues
+- Documentation
+
+MongoDB Atlas
+
+Use the available free tier for development.
+
+FastAPI
+
+Open-source backend framework.
+
+React + Vite + TypeScript
+
+Open-source frontend stack.
+
+APScheduler
+
+Open-source scheduling library.
+
+Postman
+
+Useful for API testing during development.
+
+GitHub Actions
+
+Can be used for CI/testing within available free limits.
+
+GitHub Student Developer Pack
+
+Eligible students can check the available student benefits for additional developer resources.
+
+---
+
+40. Recommended Backend Module Structure
+
+Backend/
+│
+├── attendance/
+│   ├── calculator.py
+│   ├── risk_detector.py
+│   └── recovery.py
+│
+├── notifications/
+│   ├── interface.py
+│   ├── service.py
+│   ├── mock_provider.py
+│   ├── msg91_provider.py
+│   └── fast2sms_provider.py
+│
+├── scheduler/
+│   └── attendance_job.py
+│
+└── models/
+    ├── student.py
+    ├── subject.py
+    ├── attendance.py
+    └── alert.py
+
+This is a recommended modular organization. The team does not need to restructure the repository immediately if the existing implementation already follows another structure.
+
+---
+
+41. Recommended API Contract
+
+The attendance engine should produce a standardized result:
+
+{
+  "student_id": "STU015",
+  "subject_code": "CS201",
+  "attendance_percentage": 72.0,
+  "threshold": 75.0,
+  "alert_required": true,
+  "classes_required": 3
+}
+
+The notification service then converts this into:
+
+HITS Attendance Alert:
+Your attendance in Data Structures is 72%.
+Minimum required: 75%.
+Please attend upcoming classes regularly.
+
+Architectural principle
+
+Attendance Logic != SMS Logic
+
+The two modules should remain independent.
+
+---
+
+42. Current Project API Integration
+
+The existing backend already contains:
+
+Endpoint| Purpose
+"POST /api/auth/login"| Authentication
+"GET /api/sections/"| Section listing
+"GET /api/students/"| Student attendance
+"GET /api/attendance/section/{id}"| Section attendance
+"GET /api/attendance/risk"| At-risk students
+"POST /api/alerts/send"| Manual alert
+"GET /api/alerts/history"| Alert history
+"GET /api/stats/dashboard"| Dashboard metrics
+"POST /api/seed/load-dataset"| Dataset loading
+
+The SMS layer should integrate with the existing alert functionality rather than creating an unrelated messaging workflow.
+
+---
+
+43. Team Dependency Matrix
+
+Research Output| Used By
+ERP data structure| Database + Backend
+Data dictionary| Database
+Attendance formula| Backend
+75% recovery formula| Backend
+Dataset distribution| Database
+SMS provider comparison| Automation
+SMS API requirements| Automation
+DLT requirements| Automation
+SMS template| Automation + Backend
+Notification architecture| Backend + Automation
+Security requirements| Entire team
+Cost analysis| Project team
+
+---
+
+44. Immediate Development Tasks
+
+Research Team
+
+- [ ] Finalize SMS provider comparison.
+- [ ] Verify current provider pricing.
+- [ ] Document DLT requirements.
+- [ ] Finalize SMS template.
+- [ ] Provide provider recommendation.
+- [ ] Maintain this research document.
+
+Automation Team
+
+- [ ] Select provider for technical testing.
+- [ ] Create required provider account.
+- [ ] Configure API credentials securely.
+- [ ] Implement local SMS test script.
+- [ ] Send test SMS to team member's number.
+- [ ] Capture provider response.
+- [ ] Implement "SMSProvider" abstraction.
+- [ ] Implement "MockSMSProvider".
+- [ ] Integrate with backend alert pipeline.
+
+Backend Team
+
+- [ ] Implement attendance calculation.
+- [ ] Implement "<75%" risk detection.
+- [ ] Implement classes-required calculation.
+- [ ] Integrate notification service.
+- [ ] Implement alert deduplication.
+- [ ] Store SMS delivery status.
+
+Database Team
+
+- [ ] Finalize MongoDB schema.
+- [ ] Generate 50-student dataset.
+- [ ] Include boundary cases.
+- [ ] Include multiple subject attendance.
+- [ ] Validate dataset consistency.
+
+Frontend Team
+
+- [ ] Display attendance percentage.
+- [ ] Display risk status.
+- [ ] Display subjects below 75%.
+- [ ] Display alert history.
+- [ ] Display SMS delivery status.
+
+---
+
+45. Development Milestones
+
+Milestone 1 — Data
+
+Fake Dataset
+      ↓
+MongoDB
+      ↓
+Backend
+
+Milestone 2 — Attendance Engine
+
+Attendance Records
+      ↓
+Calculation
+      ↓
+Risk Detection
+
+Milestone 3 — SMS Proof of Concept
+
+Python
+      ↓
+SMS API
+      ↓
+Test Phone
+
+Milestone 4 — Integration
+
+Attendance <75%
+      ↓
+Notification Service
+      ↓
+SMS
+
+Milestone 5 — Automation
+
+APScheduler
+      ↓
+Daily Scan
+      ↓
+Risk Detection
+      ↓
+SMS
+
+Milestone 6 — Validation
+
+50 Students
++
+Multiple Subjects
++
+Boundary Cases
++
+SMS Logs
+
+---
+
+46. Final Technical Recommendation
+
+The recommended architecture is:
+
+                    FASTAPI
+                       |
+          +------------+------------+
+          |                         |
+          v                         v
+   Attendance Engine           APScheduler
+          |                         |
+          +------------+------------+
+                       |
+                       v
+                 Risk Detector
+                       |
+                  < 75% ?
+                       |
+                      YES
+                       |
+                       v
+              Notification Service
+                       |
+                       v
+                  SMSProvider
+                  /         \
+                 /           \
+              MSG91       Fast2SMS
+                       |
+                       v
+                 Student Mobile
+                       |
+                       v
+                 Alert History
+
+Recommended SMS provider evaluation order
+
+1. MSG91 — Primary candidate
+2. Fast2SMS — Primary alternative
+3. Textlocal — Secondary option
+4. Twilio — Reference/alternative
+
+The final provider should be chosen after an actual end-to-end API test rather than purely from pricing.
+
+---
+
+47. Research Conclusion
+
+The project has transitioned from WhatsApp to SMS because SMS provides a better fit for the project's current constraints:
+
+- Lower and more controllable messaging costs
+- Universal mobile reach
+- No dependency on a messaging application
+- Simple one-way notification model
+- Straightforward REST API integration
+- Lower implementation complexity
+- Better suitability for a college project with limited funding
+
+However, SMS should not be described as inherently more secure than WhatsApp. Security must be implemented at the application and infrastructure level.
+
+The system should therefore use a provider-independent SMS abstraction, allowing the team to switch between providers without modifying attendance logic.
+
+The first automation milestone is:
+
+Python Script
+      ↓
+SMS REST API
+      ↓
+Test Mobile Number
+      ↓
+Successful SMS
+
+Only after this mechanism is validated should it be connected to:
+
+Attendance < 75%
+      ↓
+Risk Detection
+      ↓
+Notification Service
+      ↓
+SMS
+
+The prototype should use MockSMSProvider during normal development to minimize expenditure. Real SMS credits should be used only for controlled end-to-end testing.
+
+For production deployment in India, the team must additionally consider applicable TRAI/DLT registration, sender/header requirements, content templates and consent requirements.
+
+---
+
+48. Research Status
+
+Area| Status
+ERP Data Structure| ✅ Researched
+Canonical Data Model| ✅ Defined
+Data Dictionary| ✅ Defined
+Attendance Formula| ✅ Defined
+75% Recovery Logic| ✅ Defined
+Subject-wise Logic| ✅ Defined
+Fake Dataset Specification| ✅ Defined
+WhatsApp → SMS Decision| ✅ Finalized
+SMS Provider Comparison| ✅ Researched
+DLT Requirements| ✅ Identified
+SMS Template| ✅ Defined
+SMS Security| ✅ Defined
+Cost Optimization| ✅ Defined
+Notification Architecture| ✅ Defined
+Mock SMS Architecture| ✅ Defined
+Real SMS API Test| ⏳ Automation Team
+Final SMS Provider| ⏳ Pending API Test
+HITS ERP Integration| ⏳ Future Phase
+
+---
+
+Official References
+
+- "TRAI — Advice to Senders" (https://www.trai.gov.in/advice-to-senders)
+- "MSG91 — SMS Pricing" (https://msg91.com/in/pricing/sms)
+- "MSG91 — SMS API Documentation" (https://api.msg91.com/apidoc/textsms/send-sms-v1.php)
+- "Fast2SMS — Bulk SMS Pricing" (https://www.fast2sms.com/bulk-sms-pricing)
+- "Textlocal — SMS API Documentation" (https://www.textlocal.in/assets/How_To_Send_SMS_Textlocal.pdf)
+
+Document Status: Development Research Baseline
+Notification Channel: SMS
+Audience: Research, Backend, Database, Frontend and Automation-Logic Teams
